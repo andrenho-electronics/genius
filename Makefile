@@ -2,10 +2,11 @@ PROJECT=genius
 OBJECTS=src/main.o src/queue.o
 AVRDUDE_FLAGS=-p t2313 -C ./avrdude_gpio.conf -c pi_1
 FUSES=-U lfuse:w:0x7d:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
-MCU=atmega328p
+MCU=attiny2313
+F_CPU=750000UL  # 6 mhz / 8
 
 CC=avr-gcc -Wall -Wextra
-CFLAGS=-Os -mmcu=${MCU} -Isrc
+CFLAGS=-Os -DF_CPU=${F_CPU} -mmcu=${MCU} -Isrc
 
 ${PROJECT}.hex: ${PROJECT}.elf
 	avr-objcopy -j .text -j .data -O ihex $< $@

@@ -1,5 +1,9 @@
 #include "queue.h"
 
+#include <avr/interrupt.h>
+#include <avr/io.h>
+#include <util/delay.h>
+
 #include <stdint.h>
 
 #define SHOW_AGAIN 4
@@ -7,12 +11,18 @@
 static void
 mcu_init()
 {
+    // displays (D0 ~ D3) sink
+    DDRD |= _BV(DDD0) | _BV(DDD1) | _BV(DDD2) | _BV(DDD3);
+    PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
 }
 
 static void
 display(uint8_t opt)
 {
-    (void) opt;
+    PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
+    PORTD &= ~(1 << opt);
+    _delay_ms(450);
+    PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
 }
 
 static uint8_t
@@ -30,7 +40,13 @@ int
 main()
 {
     mcu_init();
+    display(0);
+    display(1);
+    display(2);
+    display(3);
 reset:
+    for(;;);
+    /*
     queue_init();
     
     while (1) {
@@ -54,6 +70,7 @@ show_again:
         // increase queue
         queue_increase();
     }
+    */
 }
 
 // vim:st=4:sts=4:sw=4:expandtab
