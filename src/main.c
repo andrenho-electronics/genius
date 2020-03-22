@@ -12,8 +12,16 @@ static void
 mcu_init()
 {
     // displays (D0 ~ D3) sink
-    DDRD |= _BV(DDD0) | _BV(DDD1) | _BV(DDD2) | _BV(DDD3);
+    DDRD |= _BV(PD0) | _BV(PD1) | _BV(PD2) | _BV(PD3);
     PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
+
+    // input pins
+    DDRB |= _BV(PB0);  // colors
+    DDRB |= _BV(PB1);  // ..
+    DDRB |= _BV(PB2);  // ..
+    DDRB |= _BV(PB3);  // ..
+    DDRB |= _BV(PB4);  // show again
+    PORTB |= _BV(PORTB0) | _BV(PORTB1) | _BV(PORTB2) | _BV(PORTB3) | _BV(PORTB4);  // activate pullups
 }
 
 static void
@@ -28,7 +36,23 @@ display(uint8_t opt)
 static uint8_t
 wait_for_input()
 {
-    return 0;
+    int ret = -1;
+    while (1) {
+        if (!(PINB & _BV(PB0)))
+            ret = 0;
+        if (!(PINB & _BV(PB1)))
+            ret = 1;
+        if (!(PINB & _BV(PB2)))
+            ret = 2;
+        if (!(PINB & _BV(PB3)))
+            ret = 3;
+        if (!(PINB & _BV(PB4)))
+            ret = SHOW_AGAIN;
+        if (ret != -1) {
+            _delay_ms(100);
+            return ret;
+        }
+    }
 }
 
 static void
@@ -49,6 +73,10 @@ main()
 reset:
     queue_init();
     
+    uint8_t x = wait_for_input();
+    display(x);
+    enter_error_condition();
+    /*
     while (1) {
         // show lights
 show_again:
@@ -70,6 +98,7 @@ show_again:
         // increase queue
         queue_increase();
     }
+    */
 }
 
 // vim:st=4:sts=4:sw=4:expandtab

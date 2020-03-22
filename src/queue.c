@@ -4,8 +4,8 @@
 
 #define MAX_QUEUE 256
 
-static uint8_t _queue[MAX_QUEUE / 4];
-static uint16_t _queue_size = 1;
+static volatile uint8_t _queue[MAX_QUEUE / 4];
+static volatile uint16_t _queue_size = 1;
 
 static unsigned int
 find_srand()
