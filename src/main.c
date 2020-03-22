@@ -87,7 +87,7 @@ show_again:
                 goto show_again;
             if (b == item) {
                 // correct
-                display(item);
+                display(item);   // TODO - allow button press while displaying
             } else {
                 // incorrect
                 enter_error_condition();
