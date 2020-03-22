@@ -35,9 +35,9 @@ static void
 enter_error_condition()
 {
     while (1) {
-        PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
-        _delay_ms(450);
         PORTD &= 0b11110000;
+        _delay_ms(450);
+        PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
         _delay_ms(450);
     }
 }
@@ -47,8 +47,6 @@ main()
 {
     mcu_init();
 reset:
-    for(;;);
-    /*
     queue_init();
     
     while (1) {
@@ -72,7 +70,6 @@ show_again:
         // increase queue
         queue_increase();
     }
-    */
 }
 
 // vim:st=4:sts=4:sw=4:expandtab

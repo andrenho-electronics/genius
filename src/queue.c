@@ -5,7 +5,7 @@
 #define MAX_QUEUE 256
 
 static uint8_t _queue[MAX_QUEUE / 4];
-static uint16_t _queue_size = 0;
+static uint16_t _queue_size = 1;
 
 static unsigned int
 find_srand()
@@ -19,7 +19,7 @@ queue_init()
     srand(find_srand());
     for (int i = 0; i < (MAX_QUEUE / 4); ++i)
         _queue[i] = rand();
-    _queue_size = 0;
+    _queue_size = 1;
 }
 
 uint8_t
