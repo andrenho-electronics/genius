@@ -34,20 +34,19 @@ wait_for_input()
 static void
 enter_error_condition()
 {
-    PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
-    _delay_ms(450);
-    PORTD &= 0b11110000;
-    _delay_ms(450);
+    while (1) {
+        PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
+        _delay_ms(450);
+        PORTD &= 0b11110000;
+        _delay_ms(450);
+    }
 }
 
 int
 main()
 {
     mcu_init();
-    display(0);
-    display(1);
-    display(2);
-    display(3);
+    enter_error_condition();
 reset:
     for(;;);
     /*
