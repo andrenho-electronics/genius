@@ -46,7 +46,6 @@ int
 main()
 {
     mcu_init();
-    enter_error_condition();
 reset:
     for(;;);
     /*
