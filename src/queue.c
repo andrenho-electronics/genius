@@ -17,8 +17,15 @@ void
 queue_init()
 {
     srand(find_srand());
-    for (int i = 0; i < (MAX_QUEUE / 4); ++i)
-        _queue[i] = rand();
+    uint8_t prev = 0xff;
+    for (int i = 0; i < MAX_QUEUE; ++i) {
+        uint8_t nxt;
+        do {
+            nxt = (rand() & 0b11);
+            _queue[i / 4] |= (nxt << ((i % 4) * 2));
+        } while (nxt == prev);  // don't repeat the same number
+        prev = nxt;
+    }
     _queue_size = 1;
 }
 

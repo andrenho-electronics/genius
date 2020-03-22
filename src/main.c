@@ -73,10 +73,6 @@ main()
 reset:
     queue_init();
     
-    uint8_t x = wait_for_input();
-    display(x);
-    enter_error_condition();
-    /*
     while (1) {
         // show lights
 show_again:
@@ -86,9 +82,14 @@ show_again:
         // wait for inputs
         for (uint8_t i = 0; i < queue_size(); ++i) {
             uint8_t b = wait_for_input();
+            uint8_t item = queue_item(i);
             if (b == SHOW_AGAIN)
                 goto show_again;
-            if (b != queue_item(i)) {
+            if (b == item) {
+                // correct
+                display(item);
+            } else {
+                // incorrect
                 enter_error_condition();
                 while (wait_for_input() != SHOW_AGAIN);
                 goto reset;
@@ -98,7 +99,6 @@ show_again:
         // increase queue
         queue_increase();
     }
-    */
 }
 
 // vim:st=4:sts=4:sw=4:expandtab
