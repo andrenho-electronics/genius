@@ -2,33 +2,13 @@
 
 #include <stdlib.h>
 
-#define MAX_QUEUE 32  // TODO
-
-static volatile uint8_t _queue[MAX_QUEUE / 4];
+static int seed = 0;
 static volatile uint16_t _queue_size = 1;
-
-static unsigned int
-find_srand()
-{
-    return 4;  // TODO
-}
 
 void
 queue_init()
 {
-    srand(find_srand());
-    uint8_t prev = 0xff;
-    for (int i = 0; i < MAX_QUEUE; ++i) {
-        uint8_t nxt;
-        do {
-            nxt = (rand() % 4);
-            int pos = (i % 4) * 2;
-            _queue[i / 4] |= nxt << pos;
-        } while (nxt == prev);  // don't repeat the same number
-        printf("%d ", nxt);
-        prev = nxt;
-    }
-    printf("\n");
+    // TODO - initialize seed
     _queue_size = 1;
 }
 
@@ -41,8 +21,18 @@ queue_size()
 uint8_t
 queue_item(uint8_t i)
 {
-    int pos = (i % 4) * 2;
-    return (_queue[i / 4] >> pos) & 0b11;
+    srand(seed);
+
+    uint8_t prev = 0xff;
+    uint8_t r;
+    for (int j = 0; j < (i+1); ++j) {
+try_again:
+        r = rand() % 4;
+        if (r == prev)
+            goto try_again;
+        prev = r;
+    }
+    return r;
 }
 
 void
