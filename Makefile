@@ -14,11 +14,15 @@ ${PROJECT}.hex: ${PROJECT}.elf
 ${PROJECT}.elf: ${OBJECTS}
 	$(CC) -mmcu=${MCU} -o $@ $^
 
+test: src/test.c src/queue.c
+	gcc -Wall -Wextra -O0 -ggdb -o $@ $^
+	./$@
+
 test-connection:
 	sudo avrdude ${AVRDUDE_FLAGS}
 
 clean:
-	rm -f *.elf src/*.o
+	rm -f *.elf src/*.o test
 
 upload: ${PROJECT}.hex
 	sudo avrdude ${AVRDUDE_FLAGS} -U flash:w:$<:i
