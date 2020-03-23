@@ -24,7 +24,7 @@ queue_item(uint8_t i)
     srand(seed);
 
     uint8_t prev = 0xff;
-    uint8_t r;
+    uint8_t r = 0;
     for (int j = 0; j < (i+1); ++j) {
 try_again:
         r = rand() % 4;
