@@ -48,8 +48,9 @@ check_input()
 
     for (unsigned i = 0; i < sizeof pins / sizeof(struct Pin); ++i) {
         if (!(PINB & _BV(pins[i].pin))) {
-            _delay_ms(100);
-            while (PINB & _BV(pins[i].pin));  // wait until button is let go
+            _delay_ms(20);
+            while (!(PINB & _BV(pins[i].pin)));  // wait until button is let go
+            _delay_ms(10);
             return pins[i].number;
         }
     }
@@ -107,6 +108,7 @@ ISR(TIMER1_COMPA_vect)
 static void
 enter_error_condition()
 {
+    TIMSK &= ~(1 << OCIE1A);  // disable timer
     while (1) {
         PORTD &= 0b11110000;
         _delay_ms(450);

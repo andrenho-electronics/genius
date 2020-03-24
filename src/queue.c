@@ -1,14 +1,19 @@
 #include "queue.h"
 
 #include <stdlib.h>
+#include <avr/eeprom.h>
 
-static int seed = 0;
+static uint32_t seed = 0;
 static volatile uint16_t _queue_size = 1;
 
 void
 queue_init()
 {
-    // TODO - initialize seed
+    eeprom_busy_wait();
+    seed = eeprom_read_dword((uint32_t*) 0);
+    eeprom_busy_wait();
+    eeprom_write_dword((uint32_t*) 0, seed + 1);  // seed to use on the next reboot
+    srand(seed);
     _queue_size = 1;
 }
 
