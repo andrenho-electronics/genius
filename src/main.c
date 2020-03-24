@@ -35,20 +35,25 @@ mcu_init()
 static int
 check_input()
 {
-    int ret = -1;
-    if (!(PINB & _BV(PB0)))
-        ret = 0;
-    if (!(PINB & _BV(PB1)))
-        ret = 1;
-    if (!(PINB & _BV(PB2)))
-        ret = 2;
-    if (!(PINB & _BV(PB3)))
-        ret = 3;
-    if (!(PINB & _BV(PB4)))
-        ret = SHOW_AGAIN;
-    if (ret != -1)
-        _delay_ms(100);
-    return ret;
+    struct Pin {
+        int number;
+        int pin;
+    } pins[] = {
+        { 0, PB0 },
+        { 1, PB1 },
+        { 2, PB2 },
+        { 3, PB3 },
+        { SHOW_AGAIN, PB4 },
+    };
+
+    for (unsigned i = 0; i < sizeof pins / sizeof(struct Pin); ++i) {
+        if (!(PINB & _BV(pins[i].pin))) {
+            _delay_ms(100);
+            while (PINB & _BV(pins[i].pin));  // wait until button is let go
+            return pins[i].number;
+        }
+    }
+    return -1;
 }
 
 static uint8_t
