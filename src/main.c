@@ -8,6 +8,10 @@
 
 #define SHOW_AGAIN 4
 
+//
+// initialization
+//
+
 static void
 mcu_init()
 {
@@ -24,35 +28,75 @@ mcu_init()
     PORTB |= _BV(PORTB0) | _BV(PORTB1) | _BV(PORTB2) | _BV(PORTB3) | _BV(PORTB4);  // activate pullups
 }
 
-static void
-display(uint8_t opt)
+// 
+// input
+//
+
+static int
+check_input()
 {
-    PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
-    PORTD &= ~(1 << opt);
-    _delay_ms(450);
-    PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
+    int ret = -1;
+    if (!(PINB & _BV(PB0)))
+        ret = 0;
+    if (!(PINB & _BV(PB1)))
+        ret = 1;
+    if (!(PINB & _BV(PB2)))
+        ret = 2;
+    if (!(PINB & _BV(PB3)))
+        ret = 3;
+    if (!(PINB & _BV(PB4)))
+        ret = SHOW_AGAIN;
+    if (ret != -1)
+        _delay_ms(100);
+    return ret;
 }
 
 static uint8_t
 wait_for_input()
 {
-    int ret = -1;
     while (1) {
-        if (!(PINB & _BV(PB0)))
-            ret = 0;
-        if (!(PINB & _BV(PB1)))
-            ret = 1;
-        if (!(PINB & _BV(PB2)))
-            ret = 2;
-        if (!(PINB & _BV(PB3)))
-            ret = 3;
-        if (!(PINB & _BV(PB4)))
-            ret = SHOW_AGAIN;
-        if (ret != -1) {
-            _delay_ms(100);
+        int ret = check_input();
+        if (ret != -1)
             return ret;
-        }
     }
+}
+
+// 
+// output
+//
+
+static void
+start_timer()
+{
+    cli(); // stop interrupts
+    TCCR1A = 0; // set entire TCCR1A register to 0
+    TCCR1B = 0; // same for TCCR1B
+    TCNT1  = 0; // initialize counter value to 0
+    // set compare match register for 2.222248559982933 Hz increments
+    OCR1A = 42186; // = 750000 / (8 * 2.222248559982933) - 1 (must be <65536)
+    // turn on CTC mode
+    TCCR1B |= (1 << WGM12);
+    // Set CS12, CS11 and CS10 bits for 8 prescaler
+    TCCR1B |= (0 << CS12) | (1 << CS11) | (0 << CS10);
+    // enable timer compare interrupt
+    TIMSK |= (1 << OCIE1A);
+    sei(); // allow interrupts
+}
+
+static void
+output(int opt)
+{
+    PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);  // turn leds off
+    if (opt >= 0) {
+        PORTD &= ~(1 << opt);  // turn single led on
+        start_timer();
+    }
+}
+
+// when interrupt is called, turn off light
+ISR(TIMER1_COMPA_vect)
+{
+    output(-1);
 }
 
 static void
@@ -66,6 +110,10 @@ enter_error_condition()
     }
 }
 
+// 
+// main loop
+//
+
 int
 main()
 {
@@ -75,19 +123,20 @@ reset:
     
     while (1) {
         // show lights
-show_again:
-        for (uint8_t i = 0; i < queue_size(); ++i)
-            display(queue_item(i));
+        for (uint8_t i = 0; i < queue_size(); ++i) {
+            output(queue_item(i));
+            _delay_ms(450);
+        }
 
         // wait for inputs
         for (uint8_t i = 0; i < queue_size(); ++i) {
             uint8_t b = wait_for_input();
             uint8_t item = queue_item(i);
             if (b == SHOW_AGAIN)
-                goto show_again;
+                continue;
             if (b == item) {
                 // correct
-                display(item);   // TODO - allow button press while displaying
+                output(item);
             } else {
                 // incorrect
                 enter_error_condition();
@@ -98,6 +147,7 @@ show_again:
 
         // increase queue
         queue_increase();
+        _delay_ms(900);
     }
 }
 
