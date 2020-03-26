@@ -8,6 +8,11 @@
 
 #define SHOW_AGAIN 4
 
+// notes
+const uint16_t A4_FREQ = 440;
+#define TIMER1_PRESCALER (uint8_t) 1
+#define A4 (F_CPU / (A4_FREQ * TIMER1_PRESCALER * 2) - 1)
+
 //
 // initialization
 //
@@ -23,9 +28,20 @@ mcu_init()
     DDRB |= _BV(PB0);  // colors
     DDRB |= _BV(PB1);  // ..
     DDRB |= _BV(PB2);  // ..
-    DDRB |= _BV(PB3);  // ..
-    DDRB |= _BV(PB4);  // show again
-    PORTB |= _BV(PORTB0) | _BV(PORTB1) | _BV(PORTB2) | _BV(PORTB3) | _BV(PORTB4);  // activate pullups
+    DDRB |= _BV(PB4);  // ..
+    DDRB |= _BV(PB5);  // show again
+    PORTB |= _BV(PORTB0) | _BV(PORTB1) | _BV(PORTB2) | _BV(PORTB4) | _BV(PORTB5);  // activate pullups
+
+    // speaker
+    DDRB = (1 << PB3);
+
+    // play note
+		/*
+    TCCR1A = (1 << COM1A0);
+    TCCR1B = (1 << WGM12)|(1 << CS10);
+    OCR1A = A4;
+		*/
+    // for (;;);
 }
 
 // 
@@ -42,8 +58,8 @@ check_input()
         { 0, PB0 },
         { 1, PB1 },
         { 2, PB2 },
-        { 3, PB3 },
-        { SHOW_AGAIN, PB4 },
+        { 3, PB4 },
+        { SHOW_AGAIN, PB5 },
     };
 
     for (unsigned i = 0; i < sizeof pins / sizeof(struct Pin); ++i) {
@@ -87,6 +103,22 @@ start_timer()
     // enable timer compare interrupt
     TIMSK |= (1 << OCIE1A);
     sei(); // allow interrupts
+
+/*
+		cli(); // stop interrupts
+		TCCR0A = 0; // set entire TCCR0A register to 0
+		TCCR0B = 0; // same for TCCR0B
+		TCNT0  = 0; // initialize counter value to 0
+		// set compare match register for 4.412179969879518 Hz increments
+		OCR0A = 165; // = 750000 / (1024 * 4.412179969879518) - 1 (must be <256)
+		// turn on CTC mode
+		TCCR0B |= (1 << WGM01);
+		// Set CS02, CS01 and CS00 bits for 1024 prescaler
+		TCCR0B |= (1 << CS02) | (0 << CS01) | (1 << CS00);
+		// enable timer compare interrupt
+		TIMSK |= (1 << OCIE0A);
+		sei(); // allow interrupts
+*/
 }
 
 static void
@@ -108,12 +140,26 @@ ISR(TIMER1_COMPA_vect)
 static void
 enter_error_condition()
 {
-    TIMSK &= ~(1 << OCIE1A);  // disable timer
+    TIMSK &= ~(1 << OCIE0A);  // disable timer
     while (1) {
         PORTD &= 0b11110000;
-        _delay_ms(450);
+        for (int i = 0; i < 45; ++i) {
+            if (check_input() == SHOW_AGAIN) {
+                output(-1);
+                _delay_ms(450);
+                return;
+            }
+            _delay_ms(10);
+        }
         PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
-        _delay_ms(450);
+        for (int i = 0; i < 45; ++i) {
+            if (check_input() == SHOW_AGAIN) {
+                output(-1);
+                _delay_ms(450);
+                return;
+            }
+            _delay_ms(10);
+        }
     }
 }
 
@@ -130,6 +176,7 @@ reset:
     
     while (1) {
         // show lights
+show_again:
         for (uint8_t i = 0; i < queue_size(); ++i) {
             output(queue_item(i));
             _delay_ms(450);
@@ -138,16 +185,15 @@ reset:
         // wait for inputs
         for (uint8_t i = 0; i < queue_size(); ++i) {
             uint8_t b = wait_for_input();
-            uint8_t item = queue_item(i);
             if (b == SHOW_AGAIN)
-                continue;
+                goto show_again;
+            uint8_t item = queue_item(i);
             if (b == item) {
                 // correct
                 output(item);
             } else {
                 // incorrect
                 enter_error_condition();
-                while (wait_for_input() != SHOW_AGAIN);
                 goto reset;
             }
         }
