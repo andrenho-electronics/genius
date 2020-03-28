@@ -12,9 +12,6 @@ output_init()
     // displays (D0 ~ D3) sink
     DDRD |= _BV(PD0) | _BV(PD1) | _BV(PD2) | _BV(PD3);
     PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);
-
-    // speaker
-    // DDRB = (1 << PB2);
 }
 
 static void
@@ -72,9 +69,11 @@ output_error()
 }
 
 // when interrupt is called, turn off light
+/*
 ISR(TIMER1_COMPA_vect)
 {
     output_data(-1);
 }
+*/
 
 // vim:st=4:sts=4:sw=4:expandtab

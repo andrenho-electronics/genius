@@ -1,5 +1,5 @@
 PROJECT=genius
-OBJECTS=src/main.o src/queue.o src/input.o src/output.o
+OBJECTS=src/main.o src/queue.o src/input.o src/output.o src/sound.o
 AVRDUDE_FLAGS=-p t2313 -C ./avrdude_gpio.conf -c pi_1
 FUSES=-U lfuse:w:0x7d:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
 MCU=attiny2313
