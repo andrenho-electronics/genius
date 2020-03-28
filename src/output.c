@@ -5,6 +5,7 @@
 #include <util/delay.h>
 
 #include "input.h"
+#include "sound.h"
 
 void
 output_init()
@@ -38,14 +39,27 @@ output_data(int opt)
     PORTD |= _BV(PORTD0) | _BV(PORTD1) | _BV(PORTD2) | _BV(PORTD3);  // turn leds off
     if (opt >= 0) {
         PORTD &= ~(1 << opt);  // turn single led on
+        sound_play(opt);
         start_timer();
+    } else {
+      sound_play(-1);
     }
 }
 
 void
 output_error()
 {
-    TIMSK &= ~(1 << OCIE0A);  // disable timer
+    // stop everything
+    output_data(-1);
+    TCCR1B = 0;
+    sound_play(-1);
+
+    // turn all lights and play sound
+    PORTD &= 0b11110000;
+    sound_play(4);
+    _delay_ms(600);
+    sound_play(-1);
+
     while (1) {
         PORTD &= 0b11110000;
         for (int i = 0; i < 45; ++i) {
@@ -69,11 +83,9 @@ output_error()
 }
 
 // when interrupt is called, turn off light
-/*
 ISR(TIMER1_COMPA_vect)
 {
     output_data(-1);
 }
-*/
 
 // vim:st=4:sts=4:sw=4:expandtab

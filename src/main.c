@@ -13,9 +13,6 @@ main()
     input_init();
     output_init();
     sound_init();
-    sound_play(0);
-    for (;;);
-    /*
 reset:
     queue_init();
     
@@ -47,7 +44,6 @@ show_again:
         queue_increase();
         _delay_ms(900);
     }
-    */
 }
 
 // vim:st=4:sts=4:sw=4:expandtab
